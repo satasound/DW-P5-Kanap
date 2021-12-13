@@ -22,8 +22,9 @@ const displayTotalQuantity = (storedProductChoices) => {
         (acc, produit) => acc + Number(produit.quantite),0);
 
       document.querySelector("#totalQuantity").innerHTML = totalQuantity;
+
       //Afficher nombre de produits dans le menu navigation
-      document.querySelector('[href="./cart.html"] li').innerHTML = `Panier<span style='color: red;'>${totalQuantity}</span>` ;
+      document.querySelector('[href="./cart.html"] li').innerHTML = `Panier &nbsp;<span style='color: red;'>${totalQuantity}</span>` ;
     }
 };
 /*********************************************************************** 
@@ -61,7 +62,6 @@ let removeCartItem = () => {
     for (let deleteBtn of cartItemDleteBtns) {       
         deleteBtn.addEventListener("click", (event) =>{  
 
-
              buttonClicked = event.target 
              buttonClicked.closest("article").remove();
 
@@ -79,12 +79,9 @@ let removeCartItem = () => {
                    
                    
                     // Mettre à jour le localStorage
-                    localStorage.setItem("products", JSON.stringify(storedProductChoices));
-                }
+                    localStorage.setItem("products", JSON.stringify(storedProductChoices));        
+                } 
             })
-         
-
-
         })   
     }
 }
@@ -137,7 +134,9 @@ let displayCart = () => {
 }
 displayCart();
 
-/********************************* Autre MAIL ****************** */    
+/*********************************************************************** 
+***********************  Validation du formulaire  *******************
+************************************************************************/
 
 const form = document.querySelector(".cart__order__form");
 const firstName = document.querySelector("#firstName");
@@ -146,27 +145,23 @@ const address = document.querySelector("#address");
 const city = document.querySelector("#city");
 const email = document.querySelector("#email");
 const validateButton = document.querySelector("#order");
-let emailError = document.querySelector("#emailErrorMsg");
 
-let formFields = [firstName, lastName, address, city, email];
-
-/***************************************************************** 
- Désactiver les attributs Required de tous les champs du formulaire */
+//Désactiver les attributs Required de tous les champs du formulaire
 let inputs = document.querySelectorAll("input");
 for (atr of inputs) {atr.removeAttribute("required");}
-/******************************************************* */
 
+/******************* Regex *****************/
 const emailRegex = /[\w-]+@([\w-]+\.)+[\w-]+/;
 const stringRegex =    /^[a-zA-Z]+(([\'\,\.\- ][a-zA-Z ])?[a-zA-Z]*)*$/
 const addressRegex = /^[0-9]{1,3}(?:(?:[,. ]){1}[-a-zA-Zàâäéèêëïîôöùûüç]+)+/
 const cityRegex = /^([a-zA-Z\u0080-\u024F]+(?:. |-| |'))*[a-zA-Z\u0080-\u024F]*$/
 
+/******************* Event Listener *****************/
 form.addEventListener("submit", function(e) {
 
     e.preventDefault(); 
 
     // Validation firstName
-
     let firstNameInput = document.querySelector("#firstNameErrorMsg");
     if (firstName.value && stringRegex.test(firstName.value) == true) {  
         firstNameInput.innerHTML = `Prénom valide`;
@@ -178,7 +173,7 @@ form.addEventListener("submit", function(e) {
         firstNameInput.innerHTML = `Prénom non invalide`;  
         firstNameInput.style.color = "#fbb4cc";      
     }
-   
+    // Validation lastName
     let lastNameInput = document.querySelector("#lastNameErrorMsg");
     if (lastName.value && stringRegex.test(lastName.value) == true) {  
         lastNameInput.innerHTML = `Nom valide`;
@@ -190,7 +185,7 @@ form.addEventListener("submit", function(e) {
         lastNameInput.innerHTML = `Nom non invalide`;  
         lastNameInput.style.color = "#fbb4cc";       
     } 
-
+    // Validation address
     let addressInput = document.querySelector("#addressErrorMsg");
     if (address.value && addressRegex.test(address.value) == true) {  
         addressInput.innerHTML = `Adresse valide`;
@@ -202,7 +197,7 @@ form.addEventListener("submit", function(e) {
         addressInput.innerHTML = `Adresse non invalide`;  
         addressInput.style.color = "#fbb4cc";       
     } 
-
+    // Validation city
     let cityInput = document.querySelector("#cityErrorMsg");
     if (city.value && cityRegex.test(city.value) == true) {  
         cityInput.innerHTML = `Ville valide`;
@@ -214,7 +209,7 @@ form.addEventListener("submit", function(e) {
         cityInput.innerHTML = `Ville non invalide`;  
         cityInput.style.color = "#fbb4cc";       
     }
-    
+    // Validation email  
     let emailInput = document.querySelector("#emailErrorMsg");
     if (email.value && emailRegex.test(email.value) == true) {  
         emailInput.innerHTML = `Email valide`;
@@ -228,10 +223,10 @@ form.addEventListener("submit", function(e) {
         return false;        
     }  
 
-    validForm();
+    validateForm();
 })    
 
-//Requête POST pour envoyer les données à l'API et récupérer le numéro de commande
+//Requête POST envoye les données et récupére le numéro de commande
 const sendForm = (storedProductChoices, contact) => {
 
     let products = [];
@@ -240,7 +235,7 @@ const sendForm = (storedProductChoices, contact) => {
     let productId = products.id;
     products.push(productId);
   }
-console.log(products);
+
     fetch("http://localhost:3000/api/products/order", {
       method: "POST",
       headers: {
@@ -251,30 +246,27 @@ console.log(products);
     })
       .then((data) => data.json())
       .then((data) => {
-        const orderId = data.orderId;
-  
-        //Envoi de l'utilisateur vers la page de confirmation en supprimant le localStorage
-        window.location.href = `confirmation.html?orderId=${orderId}`;
-        // localStorage.clear();
+      
+        //Renvoi vers la page de confirmation
+        window.location.href = `confirmation.html?orderId=${data.orderId}`;
+        //Supression du localStorage
+         localStorage.clear();
       });
   };
 
 //Soumission du formulaire et envoi de la commande
-const validForm = () => {
-    
+const validateForm = () => {  
     if (firstName.value && lastName.value && address.value && city.value && email.value
         ) 
     {
-            const contact = {
-                lastName: lastName.value,
-                firstName: firstName.value,
-                address: address.value,
-                city: city.value,
-                email: email.value,
-            };
-            sendForm(storedProductChoices, contact);
-            console.log("commande ok");
+        const contact = {
+            lastName: lastName.value,
+            firstName: firstName.value,
+            address: address.value,
+            city: city.value,
+            email: email.value,
+        };
+        sendForm(storedProductChoices, contact);
+        console.log("commande ok");
     }   
 }
-
-// toto@toto.com
